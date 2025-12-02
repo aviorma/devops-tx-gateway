@@ -20,6 +20,10 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
@@ -31,14 +35,14 @@ spec:
               readOnly: true
           livenessProbe:
             httpGet:
-              path: /
-              port: 80
+              path: /health
+              port: http
             initialDelaySeconds: 10
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /
-              port: 80
+              path: /health
+              port: http
             initialDelaySeconds: 5
             periodSeconds: 10
         {{- if .Values.metrics.enabled }}
@@ -49,7 +53,7 @@ spec:
             - exporter
           args:
             - --nginx.scrape-uri
-            - http://127.0.0.1:80/stub_status
+            - http://127.0.0.1:{{ .Values.service.targetPort }}/stub_status
             - --web.listen-address
             - :{{ .Values.metrics.port }}
           ports:
