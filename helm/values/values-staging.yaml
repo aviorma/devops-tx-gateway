@@ -6,6 +6,7 @@ image:
 service:
   type: ClusterIP
   port: 80
+  targetPort: 8080
 env:
   ENVIRONMENT: staging
 
