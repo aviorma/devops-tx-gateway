@@ -7,6 +7,6 @@ output "endpoint" {
 }
 
 output "kubeconfig" {
-  value = google_container_cluster.tx_gateway.master_auth[0].cluster_ca_certificate
+  value       = google_container_cluster.tx_gateway.master_auth[0].cluster_ca_certificate
   description = "Kubeconfig CA certificate. (As example — for real access, expand this output.)"
 }
