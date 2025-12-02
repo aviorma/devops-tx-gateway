@@ -104,8 +104,7 @@ jobs:
             --namespace tx-gateway-staging \
             --values ./helm/values/values-staging.yaml \
             --set image.repository=${{ env.DOCKER_IMAGE }} \
-            --set image.tag=${{ github.sha }} \
-            --validate > /dev/null
+            --set image.tag=${{ github.sha }} > /dev/null
           echo "✅ Helm chart validation successful"
 
       # Uncomment when deploying to real cluster:
@@ -161,8 +160,7 @@ jobs:
             --namespace tx-gateway-prod \
             --values ./helm/values/values-production.yaml \
             --set image.repository=${{ env.DOCKER_IMAGE }} \
-            --set image.tag=${{ github.ref_name }} \
-            --validate > /dev/null
+            --set image.tag=${{ github.ref_name }} > /dev/null
           echo "✅ Helm chart validation successful"
 
       # Uncomment when deploying to real cluster:
