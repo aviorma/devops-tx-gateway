@@ -1,0 +1,20 @@
+# terraform.tfvars.example
+# Copy and rename to terraform.tfvars to activate. Edit the settings below as appropriate.
+
+gcp_project = "my-company-infra"   # <-- set your real GCP project
+gcp_region  = "us-central1"
+
+gke_network    = "default"          # Or replace with your allocated VPC network
+gke_subnetwork = "default"         # Or replace with your network's preferred subnetwork
+
+# For staging:
+env                 = "staging"
+initial_node_count  = 2
+machine_type        = "e2-small"
+owner_tag           = "mydevops"
+
+# For production:
+# env                = "production"
+# initial_node_count = 4
+# machine_type       = "e2-standard-4"
+# owner_tag          = "mydevops"

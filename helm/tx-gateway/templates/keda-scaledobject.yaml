@@ -1,0 +1,25 @@
+{{- if .Values.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "tx-gateway.fullname" . }}-keda
+  labels:
+    {{- include "tx-gateway.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "tx-gateway.fullname" . }}
+  minReplicaCount: {{ .Values.keda.minReplicas }}
+  maxReplicaCount: {{ .Values.keda.maxReplicas }}
+  pollingInterval: {{ .Values.keda.pollingInterval }}
+  cooldownPeriod: {{ .Values.keda.cooldownPeriod }}
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: {{ .Values.keda.prometheus.serverAddress | quote }}
+        metricName: {{ .Values.keda.prometheus.metricName | quote }}
+        threshold: {{ .Values.keda.prometheus.threshold | quote }}
+        query: {{ .Values.keda.prometheus.query | quote }}
+{{- end }}
+

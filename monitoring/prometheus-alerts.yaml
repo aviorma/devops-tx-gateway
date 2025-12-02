@@ -1,0 +1,26 @@
+groups:
+  - name: tx-gateway.rules
+    rules:
+      - alert: TxGatewayDown
+        expr: increase(http_requests_total{job="tx-gateway"}[5m]) == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "tx-gateway is not serving traffic"
+
+      - alert: TxGatewayHigh5xx
+        expr: rate(http_responses_total{job="tx-gateway", code=~"5.."}[5m]) > 0.03
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "tx-gateway experiencing elevated 5xx error rates"
+
+      - alert: TxGatewayHighLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="tx-gateway"}[5m])) by (le)) > 0.3
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "tx-gateway 95th percentile latency > 300ms"

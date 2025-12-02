@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tx-gateway.fullname" . }}
+  labels:
+    {{- include "tx-gateway.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "tx-gateway.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "tx-gateway.selectorLabels" . | nindent 8 }}
+      annotations:
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: ENVIRONMENT
+              value: {{ .Values.env.ENVIRONMENT | quote }}
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+        {{- if .Values.metrics.enabled }}
+        - name: metrics
+          image: "{{ .Values.metrics.image.repository }}:{{ .Values.metrics.image.tag }}"
+          imagePullPolicy: {{ .Values.metrics.image.pullPolicy }}
+          command:
+            - exporter
+          args:
+            - --nginx.scrape-uri
+            - http://127.0.0.1:80/stub_status
+            - --web.listen-address
+            - :{{ .Values.metrics.port }}
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+          resources:
+            {{- toYaml .Values.metrics.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+        {{- end }}
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ include "tx-gateway.fullname" . }}-nginx-config
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}

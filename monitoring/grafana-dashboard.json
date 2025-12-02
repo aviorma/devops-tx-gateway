@@ -1,0 +1,157 @@
+{
+  "dashboard": {
+    "title": "Tx-Gateway Overview",
+    "uid": "tx-gateway-overview",
+    "tags": ["tx-gateway", "rpc", "web3"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "type": "stat",
+        "title": "Current RPS",
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {"expr": "sum(rate(nginx_http_requests_total{job='tx-gateway'}[1m]))"}
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "type": "stat",
+        "title": "Error Rate",
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {"expr": "sum(rate(nginx_http_requests_total{job='tx-gateway',status=~'5..'}[1m])) / sum(rate(nginx_http_requests_total{job='tx-gateway'}[1m]))"}
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 0.01, "color": "yellow"},
+                {"value": 0.05, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "type": "stat",
+        "title": "P95 Latency",
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {"expr": "histogram_quantile(0.95, sum(rate(nginx_http_request_duration_seconds_bucket{job='tx-gateway'}[1m])) by (le))"}
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 0.2, "color": "yellow"},
+                {"value": 0.3, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "type": "stat",
+        "title": "Active Pods",
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {"expr": "count(up{job='tx-gateway'} == 1)"}
+        ]
+      },
+      {
+        "id": 5,
+        "type": "graph",
+        "title": "Requests per Second",
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+        "targets": [
+          {"expr": "sum(rate(nginx_http_requests_total{job='tx-gateway'}[1m]))", "legendFormat": "Total RPS"}
+        ],
+        "yaxes": [
+          {"format": "reqps", "label": "Requests/sec"}
+        ]
+      },
+      {
+        "id": 6,
+        "type": "graph",
+        "title": "HTTP Status Codes",
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+        "targets": [
+          {"expr": "sum(rate(nginx_http_requests_total{job='tx-gateway',status=~'2..'}[1m]))", "legendFormat": "2xx"},
+          {"expr": "sum(rate(nginx_http_requests_total{job='tx-gateway',status=~'4..'}[1m]))", "legendFormat": "4xx"},
+          {"expr": "sum(rate(nginx_http_requests_total{job='tx-gateway',status=~'5..'}[1m]))", "legendFormat": "5xx"}
+        ],
+        "yaxes": [
+          {"format": "reqps", "label": "Requests/sec"}
+        ]
+      },
+      {
+        "id": 7,
+        "type": "graph",
+        "title": "Latency Percentiles",
+        "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+        "targets": [
+          {"expr": "histogram_quantile(0.50, sum(rate(nginx_http_request_duration_seconds_bucket{job='tx-gateway'}[1m])) by (le))", "legendFormat": "P50"},
+          {"expr": "histogram_quantile(0.95, sum(rate(nginx_http_request_duration_seconds_bucket{job='tx-gateway'}[1m])) by (le))", "legendFormat": "P95"},
+          {"expr": "histogram_quantile(0.99, sum(rate(nginx_http_request_duration_seconds_bucket{job='tx-gateway'}[1m])) by (le))", "legendFormat": "P99"}
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Latency"}
+        ]
+      },
+      {
+        "id": 8,
+        "type": "graph",
+        "title": "Pod CPU Usage",
+        "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+        "targets": [
+          {"expr": "sum(rate(container_cpu_usage_seconds_total{pod=~'tx-gateway.*'}[1m])) by (pod)", "legendFormat": "{{pod}}"}
+        ],
+        "yaxes": [
+          {"format": "percentunit", "label": "CPU"}
+        ]
+      },
+      {
+        "id": 9,
+        "type": "graph",
+        "title": "Pod Memory Usage",
+        "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
+        "targets": [
+          {"expr": "sum(container_memory_usage_bytes{pod=~'tx-gateway.*'}) by (pod)", "legendFormat": "{{pod}}"}
+        ],
+        "yaxes": [
+          {"format": "bytes", "label": "Memory"}
+        ]
+      },
+      {
+        "id": 10,
+        "type": "graph",
+        "title": "SLA Compliance (99.9% Target)",
+        "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
+        "targets": [
+          {"expr": "1 - (sum(rate(nginx_http_requests_total{job='tx-gateway',status=~'5..'}[5m])) / sum(rate(nginx_http_requests_total{job='tx-gateway'}[5m])))", "legendFormat": "Availability %"}
+        ],
+        "yaxes": [
+          {"format": "percentunit", "label": "Uptime", "min": 0.998, "max": 1.0}
+        ],
+        "thresholds": [
+          {"value": 0.999, "colorMode": "critical", "op": "lt", "fill": true, "line": true}
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+replicaCount: 2
+image:
+  repository: aviorma/tx-gateway
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 80
+env:
+  ENVIRONMENT: staging
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 75
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 512Mi
+pdb:
+  enabled: true
+  minAvailable: 1
+nodeSelector: {}
+tolerations: []
+affinity: {}

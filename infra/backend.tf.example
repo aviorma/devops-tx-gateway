@@ -1,0 +1,40 @@
+# Backend configuration for Terraform state management
+# Copy this file to backend.tf and configure for your setup
+
+# Option 1: GCS Backend (Recommended for GCP)
+# terraform {
+#   backend "gcs" {
+#     bucket  = "my-company-terraform-state"
+#     prefix  = "tx-gateway/staging"  # or "tx-gateway/production"
+#     # Optionally enable state locking
+#     # encryption is enabled by default for GCS
+#   }
+# }
+
+# Option 2: S3 Backend (for AWS)
+# terraform {
+#   backend "s3" {
+#     bucket         = "my-company-terraform-state"
+#     key            = "tx-gateway/staging/terraform.tfstate"
+#     region         = "us-east-1"
+#     dynamodb_table = "terraform-state-lock"
+#     encrypt        = true
+#   }
+# }
+
+# Option 3: Terraform Cloud
+# terraform {
+#   cloud {
+#     organization = "my-company"
+#     workspaces {
+#       name = "tx-gateway-staging"  # or "tx-gateway-production"
+#     }
+#   }
+# }
+
+# Best practices:
+# 1. Use separate state files for staging and production
+# 2. Enable state locking to prevent concurrent modifications
+# 3. Enable encryption at rest for sensitive data
+# 4. Use versioning on the storage bucket
+# 5. Restrict access using IAM policies

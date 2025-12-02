@@ -1,0 +1,89 @@
+replicaCount: 5
+
+image:
+  repository: aviorma/tx-gateway
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: tx-gateway.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: tx-gateway-tls
+      hosts:
+        - tx-gateway.example.com
+
+env:
+  ENVIRONMENT: production
+
+metrics:
+  enabled: true
+
+hpa:
+  enabled: true
+  minReplicas: 5
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 60
+
+keda:
+  enabled: true
+  minReplicas: 5
+  maxReplicas: 30
+  pollingInterval: 30
+  cooldownPeriod: 300
+  prometheus:
+    serverAddress: "http://prometheus-server.monitoring.svc.cluster.local"
+    metricName: "nginx_http_requests_total"
+    threshold: "150"
+    query: "sum(rate(nginx_http_requests_total{job=\"tx-gateway\"}[1m]))"
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+pdb:
+  enabled: true
+  minAvailable: 3
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - tx-gateway
+          topologyKey: topology.kubernetes.io/zone
+      - weight: 50
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - tx-gateway
+          topologyKey: kubernetes.io/hostname

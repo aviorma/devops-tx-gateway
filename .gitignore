@@ -1,0 +1,36 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+*.tfvars.json
+terraform.tfplan
+
+# Helm
+*.tgz
+chart.lock
+charts/
+# ignore Helm test output if present
+helm-test.log
+
+# Kubernetes
+kubeconfig
+kubeconfig*
+
+# Docker
+*.log
+
+# IDEs and OS
+*.swp
+*~
+.DS_Store
+.idea/
+.vscode/
+*.code-workspace
+
+# Node and Python junk (if ever needed)
+node_modules/
+__pycache__/
+.env
+.env.*
